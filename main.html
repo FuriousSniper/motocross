@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Żużel</title>
+    <style>
+        body {
+            -webkit-user-select: none;
+            /* Safari 3.1+ */
+            -moz-user-select: none;
+            /* Firefox 2+ */
+            -ms-user-select: none;
+            /* IE 10+ */
+            user-select: none;
+            /* Standard syntax */
+        }
+
+        #main {
+            width: 700px;
+            height: 900px;
+            margin: 0 auto;
+            padding: 0;
+        }
+
+        #overlay {
+            width: 700px;
+            height: 500px;
+            background-color: white;
+            display: block;
+            position: absolute;
+            z-index: 2;
+        }
+
+        #mainTitle {
+            font-size: 50px;
+            color: gold;
+            margin-top: 160px;
+            margin-left: 0;
+            margin-bottom: 10px;
+            margin-right: 0;
+            padding: 0;
+            text-align: center;
+        }
+
+        h3 {
+            color: green;
+            margin: 0;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .lapsCaption {
+            color: black;
+            margin: 0;
+            text-align: center;
+        }
+
+        h4 {
+            color: black;
+            margin: 0;
+            text-align: center;
+        }
+
+        .helpPlayerName {
+            color: black;
+            margin: 0;
+            text-align: center;
+        }
+
+        .playerAddButton {
+            width: 150px;
+            line-height: 20px;
+            display: block;
+            margin: 0 auto;
+            margin-bottom: 10px;
+            border: none;
+            background-color: gold;
+        }
+
+        .playerAddButton:hover {
+            box-shadow: inset 0 0 10px #0f0;
+        }
+
+        canvas {
+            z-index: 1;
+        }
+
+        .caption {
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+
+        #playerChoiceButtons {
+            margin-bottom: 10px;
+        }
+
+        .choice {
+            width: 50%;
+            height: 100%;
+        }
+
+        .playerPanel {
+            position: absolute;
+            left: 0px;
+            width: 150px;
+            top: 0;
+        }
+
+        .playerCard {
+            width: 100%;
+            height: 100px;
+            display: block;
+        }
+
+        .playerCardControls {
+            padding: 5px;
+            display: inline-block;
+            width: 40%;
+            text-align: center;
+        }
+
+        .spacer {
+            width: 100%;
+            height: 0px;
+            display: block;
+        }
+
+        .playersWinners {
+            width: 100%;
+            height: 150px;
+            display: block;
+        }
+
+        .trueWinner {
+            background: url("wygrales.png");
+            display: block;
+            width: 100px;
+            height: 140px;
+            position: absolute;
+            right: 0;
+        }
+
+        .playerWinnerLeftPanel {
+            float: left;
+            width: 55px;
+            height: 150px;
+        }
+
+        .playerWinnerRightPanel {
+            width: 200px;
+            height: 140px;
+            float: right;
+        }
+
+        #changeButtonUi {
+            display: none;
+            width: 100%;
+            height: 500px;
+        }
+
+        .column {
+            width: 24%;
+            height: 490px;
+            float: left;
+            background-color: grey;
+            padding: 3px;
+        }
+
+        .innerColumn {
+            width: 50%;
+            height: 200px;
+            float: left;
+        }
+
+        h5 {
+            word-break: break-all;
+            text-align: center;
+        }
+
+        .steerButton {
+            margin-left: 21px;
+            height: 25px;
+            width: 40px;
+        }
+
+        .uiButtonChangeCaption {
+            margin: 0;
+            margin-bottom: 25px;
+            text-align: center;
+            margin-top: 130px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="main">
+        <div id="overlay">
+        </div>
+        <div id="changeButtonUi">
+        </div>
+        <canvas id="myCanvas" width="700" height="500">
+            Your browser does not support the HTML5 canvas tag.
+        </canvas>
+    </div>
+    <script>
+        var c = document.getElementById("myCanvas");
+        var ctx = c.getContext("2d");
+        //zmienne
+        var player1 = c.getContext("2d")
+        var player1TrailLine = c.getContext("2d")
+        var x = 500
+        var y = 370
+        var speed = 5;
+        var alpha = 0
+        var turnLeft = false;
+        var turnRight = false;
+
+        var players = []
+        var winners = []
+        var allControls = []
+        var gameReady = false;
+
+        var tf = 0
+
+        var iterator = 0;
+
+        var chosen = false
+
+        var sthClicked = false;
+
+        var isFinished = false
+        let overlay = document.getElementById("overlay")
+
+        function addPlayers(number) {
+            for (var i = 0; i < number; i++) {
+                players[i] = new Player()
+                players[i].x = x - 40 + (10 * i)
+                players[i].y = y + (15 * i)
+                players[i].initialX = x - 40 + (10 * i)
+                players[i].initialY = y + (10 * i)
+
+
+                players[i].turnLeft = turnLeft
+                players[i].turnRight = turnRight
+                players[i].alpha = alpha
+                players[i].trail = []
+                if (i == 0) {
+                    players[i].color = "blue"
+                    players[i].texture = "blueMotobikeTexture.png"
+                }
+                else if (i == 1) {
+                    players[i].color = "red"
+                    players[i].texture = "redMotobikeTexture.png"
+                }
+                else if (i == 2) {
+                    players[i].color = "green"
+                    players[i].texture = "greenMotobikeTexture.png"
+                }
+                else if (i == 3) {
+                    players[i].color = "magenta"
+                    players[i].texture = "magentaMotobikeTexture.png"
+                }
+                players[i].laps = "0"
+                players[i].lapAdd = true
+                players[i].id = i
+                players[i].ready = false
+            }
+        }
+        function Player(x, y, initialX, initialY, keyLeft, keyRight, turnLeft, turnRight, alpha, trail, color, laps, lapAdd, id, texture, ready) {
+            this.x = x
+            this.y = y
+            this.initialX = initialX
+            this.initialY = initialY
+            this.keyLeft = keyLeft
+            this.keyRight = keyRight
+            this.turnLeft = turnLeft
+            this.turnRight = turnRight
+            this.alpha = alpha
+            this.trail = trail
+            this.color = color
+            this.laps = laps
+            this.lapAdd = lapAdd
+            this.id = id
+            this.texture = texture
+            this.ready = ready
+        }
+        function turning(i) {
+            if (players[i].turnLeft)
+                players[i].alpha -= 0.02
+            else if (players[i].turnRight)
+                players[i].alpha += 0.02
+
+            players[i].x = speed * 0.60 * Math.cos(players[i].alpha) + players[i].x
+            players[i].y = speed * 0.60 * Math.sin(players[i].alpha) + players[i].y
+        }
+        function collision() {
+            for (var i = 0; i < players.length; i++) {
+                var img = player1.getImageData(players[i].x, players[i].y, 1, 1)
+                if (img.data[0] == 0 && img.data[1] == 0 && img.data[2] == 0) {
+                    players[i].x = players[i].initialX
+                    players[i].y = players[i].initialY
+                    players[i].alpha = 0
+                    players[i].trail = []
+                    if (players[i].laps >= 1) {
+                        players[i].laps--
+                        document.getElementById("gracz" + players[i].id).innerHTML = players[i].laps
+                    }
+                    if (players[i].laps < 0) {
+                        players[i].laps = 0
+                        document.getElementById("gracz" + players[i].id).innerHTML = players[i].laps
+                    }
+                }
+            }
+        }
+        function drawTrail() {
+            for (var i = 0; i < players.length; i++) {
+                for (var j = 0; j < players[i].trail.length - 1; j++) {
+                    var kolor = players[i].color
+                    switch (kolor) {
+                        case "blue":
+                            player1TrailLine.strokeStyle = "rgba(0,0,255," + j / players[i].trail.length + ")"
+                            break;
+                        case "red":
+                            player1TrailLine.strokeStyle = "rgba(255,0,0," + j / players[i].trail.length + ")"
+                            break;
+                        case "green":
+                            player1TrailLine.strokeStyle = "rgba(0,255,0," + j / players[i].trail.length + ")"
+                            break;
+                        case "magenta":
+                            player1TrailLine.strokeStyle = "rgba(255,0,255," + j / players[i].trail.length + ")"
+                            break;
+                    }
+                    player1TrailLine.lineWidth = 1
+                    player1TrailLine.beginPath()
+                    player1TrailLine.moveTo(players[i].trail[j][0], players[i].trail[j][1])
+                    player1TrailLine.lineTo(players[i].trail[j + 1][0], players[i].trail[j + 1][1])
+                    player1TrailLine.stroke()
+
+
+                }
+                if (players[i].trail.length >= 30)
+                    players[i].trail.shift()
+            }
+        }
+        function drawBikes() {
+            for (var i = 0; i < players.length; i++) {
+                var bike = new Image()
+                bike.src = players[i].texture
+                ctx.save();
+                ctx.translate(players[i].x, players[i].y);
+                ctx.rotate(players[i].alpha * 57.46 * Math.PI / 180);
+                ctx.drawImage(bike, -(bike.width / 2), -(bike.height / 2));
+                ctx.restore();
+            }
+        }
+        function movement() {
+            for (var i = 0; i < players.length; i++) {
+                player1.beginPath()
+                player1.moveTo(players[i].x, players[i].y)
+                turning(i)
+                player1.lineTo(players[i].x, players[i].y)
+                player1.stroke()
+                players[i].trail.push([players[i].x, players[i].y])
+            }
+        }
+        function lapsCounting() {
+            for (var i = 0; i < players.length; i++) {
+                var img = player1.getImageData(players[i].x, players[i].y, 1, 1)
+                if (img.data[0] == 91 && img.data[1] == 70 && img.data[2] == 31) {
+                    if (players[i].lapAdd) {
+                        players[i].lapAdd = false
+                        cooldown(i)
+                        players[i].laps++
+
+                        document.getElementById("gracz" + players[i].id).innerHTML = players[i].laps
+                    }
+                }
+            }
+        }
+        function drawMap() {
+            var outerImg = new Image()
+            outerImg.src = "grass-texture-1154152.jpg"
+            var outerPattern = ctx.createPattern(outerImg, 'repeat');
+
+            var innerImg = new Image()
+            innerImg.src = "groundTexture.jpg"
+            var innerPattern = ctx.createPattern(innerImg, 'repeat');
+
+            ctx.beginPath();
+            ctx.rect(0, 0, 700, 500)
+            ctx.fillStyle = outerPattern
+            ctx.strokeStyle = "rgb(0,0,0)"
+            ctx.lineWidth = 4;
+            ctx.fill()
+            ctx.closePath()
+            ctx.beginPath();
+            ctx.fillStyle = innerPattern
+            ctx.arc(500, 250, 200, 1.5 * Math.PI, 0.5 * Math.PI);
+            ctx.arc(200, 250, 200, 0.5 * Math.PI, 1.5 * Math.PI);
+
+            ctx.closePath()
+            ctx.fill()
+            ctx.stroke();
+
+
+            ctx.beginPath()
+            ctx.arc(500, 250, 100, 1.5 * Math.PI, 0.5 * Math.PI);
+            ctx.arc(200, 250, 100, 0.5 * Math.PI, 1.5 * Math.PI);
+            ctx.fillStyle = outerPattern
+            ctx.closePath()
+            ctx.fill()
+            ctx.stroke();
+
+
+            ctx.beginPath()
+            ctx.strokeStyle = "#5b461f"
+            ctx.moveTo(450, 352)
+            ctx.lineTo(450, 448)
+            ctx.stroke()
+
+        }
+        function cooldown(i) {
+            setTimeout(function () {
+                if (!(players[i] == undefined)) {
+                    players[i].lapAdd = true
+                }
+            }, 3000)
+        }
+        function winningConditions() {
+            for (var i = 0; i < players.length; i++) {
+                if (players[i].laps >= 2) {
+                    var playerWhoWon = players.splice(i, 1);
+                    winners.push(playerWhoWon)
+                }
+            }
+            if (players.length == 0)
+                isFinished = true
+        }
+        function gameFinish() {
+            if (players.length == 0) {
+                remove("playerPanel")
+                var toClear = document.getElementById("overlay");
+                while (toClear.firstChild) {
+                    toClear.removeChild(toClear.firstChild);
+                }
+
+                var div = document.createElement("div")
+                div.classList.add("playersWinners")
+                var h3 = document.createElement("h4")
+                h3.innerHTML = "Tabela wyników"
+                div.append(h3)
+                for (var i = 0; i < winners.length; i++) {
+                    var left = document.createElement("div")
+                    left.classList.add("playersWinnersLeftPanel")
+                    left.innerHTML = i + 1 + ". Gracz " + (winners[i][0].id + 1)
+                    left.style.color = winners[i][0].color
+                    var right = document.createElement("div")
+                    right.classList.add("playersWinnersRightPanel")
+                    if (i == 0) {
+                        var trueWinner = document.createElement("div")
+                        left.style.margintop = "-20px"
+                        trueWinner.classList.add("trueWinner")
+                        right.appendChild(trueWinner)
+                    }
+                    else if (i == 1) {
+                        left.style.marginTop = "140px"
+                    }
+                    div.appendChild(left)
+                    div.appendChild(right)
+                    var spacer = document.createElement("div")
+                    spacer.classList.add("spacer")
+                    if (i == 0)
+                        spacer.style.marginBottom = "15px"
+                    div.appendChild(spacer)
+                }
+                overlay.appendChild(div)
+                overlay.style.display = "block"
+            }
+        }
+        function animateGame() {
+            ctx.clearRect(0, 0, c.width, c.height)
+            drawMap()
+            collision()
+            lapsCounting()
+            movement()
+            drawBikes()
+            drawTrail()
+            winningConditions()
+            if (isFinished)
+                gameFinish()
+            else 
+                requestAnimationFrame(animateGame)
+        }
+        document.addEventListener("DOMContentLoaded", function () {
+            initUi()
+        })
+        function initUi() {
+            var bts = document.getElementsByClassName("playerAddButton")
+            var h1 = document.createElement("h1")
+            h1.id = "mainTitle"
+            h1.innerHTML = "ŻUŻEL"
+            overlay.appendChild(h1)
+            var h3 = document.createElement("h3")
+            h3.innerHTML = "W ilu graczy chcesz zagrać?"
+            overlay.appendChild(h3)
+            for (var i = 1; i < 5; i++) {
+                var bt = document.createElement("button")
+                bt.classList.add("playerAddButton")
+                bt.addEventListener("click", prepareGame)
+                bt.value = i
+                bt.innerHTML = i
+                overlay.appendChild(bt)
+            }
+        }
+        function prepareGame() {
+            document.getElementById("overlay").style.display = "none"
+            addPlayers(this.value)
+            changeButtonsUi(this.value)
+        }
+        function changeButtonsUi(value) {
+            var buttonUi = document.getElementById("changeButtonUi")
+            buttonUi.style.display = "block"
+            for (var i = 0; i < players.length; i++) {
+                var column = document.createElement("div")
+                column.classList.add("column")
+                var h3 = document.createElement("h3")
+                h3.classList.add("uiButtonChangeCaption")
+                h3.innerText = "Gracz " + (players[i].id + 1)
+                h3.style.color = players[i].color
+                var h5 = document.createElement("h5")
+                h5.innerText = "Wybierz przyciski do skrętu:"
+                column.appendChild(h3)
+                column.append(h5)
+                for (var j = 0; j < 2; j++) {
+                    var innerColumn = document.createElement("div")
+                    innerColumn.classList.add("innerColumn")
+                    var innerH5 = document.createElement("h5")
+                    if (j == 0) {
+                        innerH5.innerText = "Lewo:"
+                        innerColumn.append(innerH5)
+                        var buttonLeft = document.createElement("button")
+                        buttonLeft.classList.add("steerButton")
+                        buttonLeft.innerText = " "
+                        buttonLeft.value = players[i].id + "L"
+                        buttonLeft.id = "L" + players[i].id
+                        buttonLeft.addEventListener("click", function addTurnButton() {
+                            changeButtons(this.value)
+                        })
+                        innerColumn.appendChild(buttonLeft)
+                    }
+                    else {
+                        innerH5.innerText = "Prawo:"
+                        innerColumn.append(innerH5)
+                        var buttonRight = document.createElement("button")
+                        buttonRight.classList.add("steerButton")
+                        buttonRight.innerText = " "
+                        buttonRight.value = players[i].id + "R"
+                        buttonRight.id = "R" + players[i].id
+                        buttonRight.addEventListener("click", function addTurnButton() {
+                            changeButtons(this.value)
+                            buttonRight.removeEventListener("click", addTurnButton)
+                        })
+                        innerColumn.appendChild(buttonRight)
+                    }
+
+                    column.append(innerColumn)
+                }
+                buttonUi.appendChild(column)
+            }
+        }                                                                      //======================================================================
+        function changeButtons(id) {
+            var playerId = id[0]
+            var playerButton = id[1]
+            var button;
+            var char;
+            if (!sthClicked) {
+                sthClicked = true
+                var number = players.length - 1
+                document.addEventListener("keydown", function playerButtonChange(e) {
+                    button = e.which
+                    for (var i = 0; i < allControls.length; i++) {
+                        if (button == allControls[i])
+                            chosen = true
+                    }
+
+                    if (!chosen) {
+                        chosen = false
+                        allControls.push(button)
+                        char = e.key
+                        if (button != null || button != undefined || button != "") {
+                            document.removeEventListener("keydown", playerButtonChange)
+                            if (playerButton == "L") {
+                                players[playerId].keyLeft = button
+                                console.log(players[playerId].keyLeft)
+                            }
+                            else
+                                players[playerId].keyRight = button
+                            document.getElementById(playerButton + playerId).innerHTML = char
+                            sthClicked = false
+                            checkAllControls(number)
+                        }
+                    }
+                    else {
+                        chosen = false
+                        alert("Ten przycisk jest juz wybrany!\nWybierz inny!")
+                        button = e.which
+                    }
+                })
+            }
+        }
+        function help() {
+            var div = document.createElement("div")
+            div.id = "playerPanel"
+            div.classList.add("playerPanel")
+            for (var i = 0; i < players.length; i++) {
+                var playerCard = document.createElement("div")
+                playerCard.classList.add("playerCard")
+                playerCard.style.backgroundColor = players[i].color
+                var h3 = document.createElement("h3")
+                h3.classList.add("helpPlayerName")
+                h3.innerHTML = "Gracz " + (players[i].id + 1)
+                playerCard.appendChild(h3)
+                for (var j = 0; j < 2; j++) {
+                    var left = document.createElement("div")
+                    left.classList.add("playerCardControls")
+                    if (j == 0) {
+                        left.style.float = "left"
+                        if (players[i].keyLeft == 103) {
+                            left.innerHTML = "numpad7"
+                        }
+                        else {
+                            left.innerHTML = String.fromCharCode(players[i].keyLeft)
+                        }
+                    }
+                    else {
+                        left.style.float = "right"
+                        if (players[i].keyRight == 105) {
+                            left.innerHTML = "numpad9"
+                        }
+                        else if (players[i].keyRight == 221) {
+                            left.innerHTML = "]"
+                        }
+                        else {
+                            left.innerHTML = String.fromCharCode(players[i].keyRight)
+                        }
+                    }
+                    playerCard.appendChild(left)
+                }
+                var spacer = document.createElement("div")
+                spacer.classList.add("spacer")
+                var lapsCaption = document.createElement("h4")
+                lapsCaption.innerHTML = "Okrążenia:"
+                lapsCaption.classList.add("lapsCaption")
+                playerCard.appendChild(lapsCaption)
+                var laps = document.createElement("h4")
+                laps.classList.add("lapsCaption")
+                laps.innerHTML = players[i].laps
+                laps.id = "gracz" + i
+                playerCard.append(lapsCaption)
+                playerCard.append(laps)
+                div.appendChild(playerCard)
+            }
+            document.getElementById("main").appendChild(div)
+        }
+        function checkAllControls() {
+            for (var i = 0; i < players.length; i++) {
+                if (players[i].keyLeft != undefined && players[i].keyRight != undefined)
+                    players[i].ready = true
+
+                if (players[i].ready == true)
+                    tf++;
+                else
+                    tf = 0;
+                if (tf == players.length) {
+                    gameReady = true
+                    remove("changeButtonUi")
+                    animateGame()
+                    if (gameReady) {
+                        document.body.addEventListener("keydown", function controlsTurn(e) {
+                            for (var i = 0; i < players.length; i++) {
+                                if (e.which == players[i].keyLeft) {
+                                    players[i].turnRight = false;
+                                    players[i].turnLeft = true;
+
+                                }
+                                if (e.which == players[i].keyRight) {
+                                    players[i].turnRight = true;
+                                    players[i].turnLeft = false;
+                                }
+                            }
+                        })
+                        document.body.addEventListener("keyup", function controlsNoTurn(e) {
+                            for (var i = 0; i < players.length; i++) {
+                                if (e.which == players[i].keyLeft) {
+                                    players[i].turnRight = false;
+                                    players[i].turnLeft = false;
+
+                                }
+                                if (e.which == players[i].keyRight) {
+                                    players[i].turnRight = false;
+                                    players[i].turnLeft = false;
+                                }
+                            }
+                        })
+                    }
+                    help()
+                }
+            }
+        }
+        function remove(id) {
+            var elem = document.getElementById(id);
+            return elem.parentNode.removeChild(elem);
+        }
+    </script>
+</body>
+</html>
