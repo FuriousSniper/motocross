@@ -1,2 +1,3 @@
 # motocross
 A simple game of "Żużel" ("Motocross").
+To begin playing, open `main.html` file. Then select amount of players. After selecting, you'll notice a screen, where you select buttons for turning left and right. To choose them, click on button, and then click on key you want to use to turn. After all players choose their movement keys, this is where the fun begins. In order to win, you need to pass two laps, but watch out - getting off-road makes you start from the beginning and also cancels one lap. On the left side you can see basic info about each player (turning keys, laps, color). Have fun!
